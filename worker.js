@@ -6,6 +6,7 @@
 //   NOTION_TOKEN            - your Notion integration token (Secret)
 //   NOTION_DATA_SOURCE_ID   - 3b4f9ba0-53c5-8009-8827-000b79126ae6
 //
+//   { action: "list" }
 //   { action: "query",  customerName }
 //   { action: "update", pageId, figmaUrl?, status? }
 //   { action: "create", requesterEmail, customerName, customerLogo?, delivery, pitches, slides, customSlides? }
@@ -32,6 +33,7 @@ export default {
 
     const action = body.action || "query";
 
+    if (action === "list") return handleList(body, env);
     if (action === "query") return handleQuery(body, env);
     if (action === "update") return handleUpdate(body, env);
     if (action === "create") return handleCreate(body, env);
@@ -39,6 +41,66 @@ export default {
     return json({ error: `Unknown action "${action}"` }, 400);
   }
 };
+
+async function handleList(_body, env) {
+  try {
+    const customers = [];
+    let startCursor = undefined;
+    let hasMore = true;
+
+    while (hasMore) {
+      const payload = {
+        page_size: 100,
+        sorts: [{ property: "Customer Name", direction: "ascending" }]
+      };
+      if (startCursor) payload.start_cursor = startCursor;
+
+      const notionRes = await fetch(
+        `https://api.notion.com/v1/data_sources/${env.NOTION_DATA_SOURCE_ID}/query`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.NOTION_TOKEN}`,
+            "Notion-Version": "2025-09-03",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const data = await notionRes.json();
+
+      if (!notionRes.ok) {
+        return json(
+          { error: "Notion API error", status: notionRes.status, detail: data },
+          notionRes.status
+        );
+      }
+
+      for (const page of data.results || []) {
+        const titleProp = page.properties?.["Customer Name"];
+        const name = (titleProp?.title || [])
+          .map((t) => t.plain_text || "")
+          .join("")
+          .trim();
+        if (!name) continue;
+
+        customers.push({
+          name,
+          pageId: page.id,
+          status: page.properties?.Status?.status?.name || null
+        });
+      }
+
+      hasMore = Boolean(data.has_more);
+      startCursor = data.next_cursor || undefined;
+    }
+
+    return json({ customers }, 200);
+  } catch (err) {
+    return json({ error: err.message }, 500);
+  }
+}
 
 async function handleCreate(body, env) {
   const { requesterEmail, customerName, customerLogo, delivery, pitches, slides, customSlides } = body;
