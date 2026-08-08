@@ -1,0 +1,12 @@
+name = "deck-builder"
+main = "worker.js"
+compatibility_date = "2024-08-01"
+
+# NOTION_TOKEN is a secret — set via Cloudflare dashboard or:
+#   npx wrangler secret put NOTION_TOKEN
+
+[vars]
+NOTION_DATA_SOURCE_ID = "3b4f9ba0-53c5-8009-8827-000b79126ae6"
+
+# NOTION_TOKEN is a secret — set via Cloudflare dashboard or:
+#   npx wrangler secret put NOTION_TOKEN

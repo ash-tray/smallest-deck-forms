@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Build a Deck · Smallest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Deck Request</h1>
+</header>
+
+<div class="wizard">
+
+  <form id="deckForm" novalidate>
+
+    <!-- Step 1: Basics -->
+    <section class="step active" data-step="1">
+
+      <div class="ds-field">
+        <label class="ds-label" for="requesterEmail">Your email *</label>
+        <input class="ds-input" type="email" id="requesterEmail" autocomplete="email" placeholder="you@smallest.ai" />
+        <p class="ds-field-error" id="requesterEmailError" hidden></p>
+        <p class="ds-hint">@smallest.ai only — saved to the Request column in Notion.</p>
+      </div>
+
+      <div class="ds-field">
+        <label class="ds-label" for="customerName">Customer Name *</label>
+        <input class="ds-input" type="text" id="customerName" placeholder="e.g. VyStar Credit Union" />
+      </div>
+
+      <div class="ds-field">
+        <label class="ds-label" for="customerLogo">Customer Logo URL</label>
+        <input class="ds-input" type="text" id="customerLogo" inputmode="url" placeholder="https://... (optional)" />
+      </div>
+
+      <div class="ds-field">
+        <label class="ds-label" for="delivery">First Review *</label>
+        <input class="ds-input ds-date" type="date" id="delivery" />
+        <p class="ds-field-error" id="deliveryError" hidden></p>
+        <p class="ds-hint">Must be at least 24 hours from now.</p>
+      </div>
+
+      <div class="step-buttons">
+        <button type="button" class="btn-next" data-next="2">Next</button>
+        <nav class="step-dots" aria-label="Progress">
+          <span class="step-dot" data-step="1"></span>
+          <span class="step-dot" data-step="2"></span>
+          <span class="step-dot" data-step="3"></span>
+          <span class="step-dot" data-step="4"></span>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Step 2: What are we pitching -->
+    <section class="step" data-step="2">
+      <div id="pitchOptions" class="choice-list" role="listbox" aria-multiselectable="false"></div>
+      <p class="choice-kbd-hint">Press <kbd>1</kbd>, <kbd>A</kbd>, <kbd>2</kbd>–<kbd>9</kbd>, or <kbd>0</kbd> to select</p>
+
+      <div class="step-buttons">
+        <button type="button" class="btn-back" data-back="1">Back</button>
+        <button type="button" class="btn-next" data-next="3">Next</button>
+        <nav class="step-dots" aria-label="Progress">
+          <span class="step-dot" data-step="1"></span>
+          <span class="step-dot" data-step="2"></span>
+          <span class="step-dot" data-step="3"></span>
+          <span class="step-dot" data-step="4"></span>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Step 3: Slides -->
+    <section class="step" data-step="3">
+
+      <div class="view-toggle">
+        <button type="button" id="viewList" class="view-btn active">List view</button>
+        <button type="button" id="viewGallery" class="view-btn">Gallery view</button>
+      </div>
+
+      <p class="hint" id="slideHint">Based on what you're pitching, these slides are available.</p>
+
+      <div id="slideOptionsList" class="option-grid"></div>
+      <div id="slideOptionsGallery" class="gallery-grid" style="display:none;"></div>
+
+      <div class="ds-field">
+        <label class="ds-label" for="customSlides">Custom Slides</label>
+        <p class="ds-hint">Slide Title / Slide Information (200 characters) / Slide Layout Preference (if any)</p>
+        <textarea class="ds-textarea" id="customSlides" rows="5" placeholder="Slide Title: ...&#10;Slide Information: ...&#10;Slide Layout Preference: ..."></textarea>
+      </div>
+
+      <div class="step-buttons">
+        <button type="button" class="btn-back" data-back="2">Back</button>
+        <button type="button" class="btn-next" data-next="4">Next</button>
+        <nav class="step-dots" aria-label="Progress">
+          <span class="step-dot" data-step="1"></span>
+          <span class="step-dot" data-step="2"></span>
+          <span class="step-dot" data-step="3"></span>
+          <span class="step-dot" data-step="4"></span>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Step 4: Review & Submit -->
+    <section class="step" data-step="4">
+      <div id="reviewSummary" class="review-summary"></div>
+
+      <div id="submitStatus" class="submit-status"></div>
+
+      <div class="step-buttons">
+        <button type="button" class="btn-back" data-back="3">Back</button>
+        <button type="button" class="btn-submit" id="submitBtn">Submit request</button>
+        <nav class="step-dots" aria-label="Progress">
+          <span class="step-dot" data-step="1"></span>
+          <span class="step-dot" data-step="2"></span>
+          <span class="step-dot" data-step="3"></span>
+          <span class="step-dot" data-step="4"></span>
+        </nav>
+      </div>
+    </section>
+
+  </form>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "deck-form",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "deploy:worker": "wrangler deploy",
+    "test:create": "node scripts/test-create.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.120.0"
+  }
+}
