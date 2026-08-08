@@ -51,7 +51,7 @@ async function handleList(_body, env) {
     while (hasMore) {
       const payload = {
         page_size: 100,
-        sorts: [{ property: "Customer Name", direction: "ascending" }]
+        sorts: [{ timestamp: "created_time", direction: "descending" }]
       };
       if (startCursor) payload.start_cursor = startCursor;
 
@@ -85,16 +85,27 @@ async function handleList(_body, env) {
           .trim();
         if (!name) continue;
 
+        const customProp = page.properties?.["Custom Slides"];
+        const customSlides = (customProp?.rich_text || [])
+          .map((t) => t.plain_text || "")
+          .join("")
+          .trim();
+
         customers.push({
           name,
           pageId: page.id,
-          status: page.properties?.Status?.status?.name || null
+          status: page.properties?.Status?.status?.name || null,
+          createdTime: page.created_time || null,
+          hasCustomSlides: Boolean(customSlides)
         });
       }
 
       hasMore = Boolean(data.has_more);
       startCursor = data.next_cursor || undefined;
     }
+
+    // Newest first (Notion sort should already do this; keep stable locally too).
+    customers.sort((a, b) => String(b.createdTime || "").localeCompare(String(a.createdTime || "")));
 
     return json({ customers }, 200);
   } catch (err) {
@@ -192,12 +203,32 @@ async function handleCreate(body, env) {
 }
 
 async function handleQuery(body, env) {
-  const customerName = body.customerName;
-  if (!customerName) {
-    return json({ error: "Missing customerName" }, 400);
+  const { customerName, pageId } = body;
+
+  if (!customerName && !pageId) {
+    return json({ error: "Missing customerName or pageId" }, 400);
   }
 
   try {
+    // Exact page lookup when the plugin dropdown picked a specific Notion row.
+    if (pageId) {
+      const notionRes = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${env.NOTION_TOKEN}`,
+          "Notion-Version": "2025-09-03"
+        }
+      });
+
+      const data = await notionRes.json();
+
+      if (!notionRes.ok) {
+        return json({ error: "Notion API error", status: notionRes.status, detail: data }, notionRes.status);
+      }
+
+      return json({ results: [data] }, 200);
+    }
+
     const notionRes = await fetch(
       `https://api.notion.com/v1/data_sources/${env.NOTION_DATA_SOURCE_ID}/query`,
       {
@@ -211,7 +242,8 @@ async function handleQuery(body, env) {
           filter: {
             property: "Customer Name",
             title: { equals: customerName }
-          }
+          },
+          sorts: [{ timestamp: "created_time", direction: "descending" }]
         })
       }
     );
